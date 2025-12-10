@@ -1,0 +1,67 @@
+.profile-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.profile-container h1 {
+  color: #333;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.profile-card {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+/* Фото профиля */
+.profile-photo img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid #5F9EA0;
+  margin-bottom: 20px;
+}
+
+/* Имя + email */
+.profile-info h2 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.profile-info .email {
+  color: #666;
+}
+
+.simple-profile {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-photo img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.upload-btn {
+  margin-top: 10px;
+  padding: 10px 15px;
+  background: #5f9ea0;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.upload-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
