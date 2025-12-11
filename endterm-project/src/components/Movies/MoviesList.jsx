@@ -6,47 +6,40 @@ import { useSearchParams } from 'react-router-dom';
 import './Movies.css';
 
 const MoviesList = () => {
-  const [shows, setShows] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [shows, setShows] = useState([]); 
+  const [loading, setLoading] = useState(true); 
   const [error, setError] = useState('');
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(0); // Для пагинации
   const [selectedGenre, setSelectedGenre] = useState('');
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const q = searchParams.get("q") || "";
-
+  const q = searchParams.get("q") || ""; 
   const [searchTerm, setSearchTerm] = useState(q);
-  const debouncedSearch = useDebounce(searchTerm, 500);
+  const debouncedSearch = useDebounce(searchTerm, 500); 
 
-  // Фильтрация шоу по жанру
+  // ========== useMemo: фильтрация по жанру ==========
   const filteredShows = useMemo(() => {
     if (!selectedGenre) return shows;
-
-    return shows.filter(show =>
-      show.genres && show.genres.some(genre =>
-        genre.toLowerCase().includes(selectedGenre.toLowerCase())
-      )
-    );
+    return shows.filter(show => show.genres?.some(genre => genre.toLowerCase().includes(selectedGenre.toLowerCase())));
   }, [shows, selectedGenre]);
 
-  // Пагинация / фильтр
+  // ========== useMemo: пагинация ==========
   const paginatedShows = useMemo(() => {
     if (!q && !selectedGenre) {
       const start = page * 20;
-      const end = start + 20;
-      return shows.slice(start, end);
+      return shows.slice(start, start + 20);
     }
     return filteredShows;
   }, [shows, page, q, selectedGenre, filteredShows]);
 
-  // ===== Callbacks =====
+  // ========== Callbacks ==========
   const loadShows = useCallback(async () => {
     setLoading(true);
     try {
       const data = await fetchShows(page);
-      setShows(data.slice(0, 100));
+      setShows(data.slice(0, 100)); // Ограничиваем количество шоу
       setError('');
-    } catch (err) {
+    } catch {
       setError('Failed to load TV shows');
     } finally {
       setLoading(false);
@@ -59,7 +52,7 @@ const MoviesList = () => {
       const data = await searchShows(query);
       setShows(data);
       setError('');
-    } catch (err) {
+    } catch {
       setError('Failed to search shows');
     } finally {
       setLoading(false);
@@ -77,23 +70,12 @@ const MoviesList = () => {
     setSearchParams({});
   }, [selectedGenre, setSearchParams]);
 
-  const handlePreviousPage = useCallback(() => {
-    setPage(prev => Math.max(0, prev - 1));
-  }, []);
+  const handlePreviousPage = useCallback(() => setPage(prev => Math.max(0, prev - 1)), []);
+  const handleNextPage = useCallback(() => setPage(prev => prev + 1), []);
 
-  const handleNextPage = useCallback(() => {
-    setPage(prev => prev + 1);
-  }, []);
-
-  // ===== Effects =====
-  useEffect(() => {
-    if (!q) loadShows();
-  }, [page, q, loadShows]);
-
-  useEffect(() => {
-    if (q) handleSearch(q);
-  }, []);
-
+  // ========== useEffect ==========
+  useEffect(() => { if (!q) loadShows(); }, [page, q, loadShows]);
+  useEffect(() => { if (q) handleSearch(q); }, []);
   useEffect(() => {
     if (debouncedSearch) {
       setSearchParams({ q: debouncedSearch });
@@ -103,14 +85,8 @@ const MoviesList = () => {
       loadShows();
     }
   }, [debouncedSearch, setSearchParams, handleSearch, loadShows]);
+  useEffect(() => { if (q || selectedGenre) setPage(0); }, [q, selectedGenre]);
 
-  useEffect(() => {
-    if (q || selectedGenre) {
-      setPage(0);
-    }
-  }, [q, selectedGenre]);
-
-  // ====== Render ======
   return (
     <div className="movies-container">
       <div className="movies-header">
@@ -138,65 +114,25 @@ const MoviesList = () => {
         <>
           {(q || selectedGenre) && (
             <div className="active-filters">
-              {q && (
-                <span className="active-filter">
-                  Search: "{q}"
-                  <button 
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSearchParams({});
-                    }}
-                    className="clear-filter"
-                  >
-                    ✕
-                  </button>
-                </span>
-              )}
-              {selectedGenre && (
-                <span className="active-filter">
-                  Genre: {selectedGenre}
-                  <button 
-                    onClick={() => setSelectedGenre('')}
-                    className="clear-filter"
-                  >
-                    ✕
-                  </button>
-                </span>
-              )}
+              {q && <span className="active-filter">Search: "{q}" <button onClick={() => {setSearchTerm(''); setSearchParams({});}} className="clear-filter">✕</button></span>}
+              {selectedGenre && <span className="active-filter">Genre: {selectedGenre} <button onClick={() => setSelectedGenre('')} className="clear-filter">✕</button></span>}
             </div>
           )}
 
           <div className="shows-grid">
-            {paginatedShows.map((show) => (
-              <ShowCard key={show.id} show={show} />
-            ))}
+            {paginatedShows.map(show => <ShowCard key={show.id} show={show} />)}
           </div>
 
-          {paginatedShows.length === 0 && !loading && (
-            <div className="no-results">
-              <p>No TV shows found. Try a different search or filter.</p>
-            </div>
-          )}
+          {paginatedShows.length === 0 && !loading && <div className="no-results"><p>No TV shows found. Try a different search or filter.</p></div>}
 
           {!q && !selectedGenre && (
             <div className="pagination">
-              <button 
-                onClick={handlePreviousPage}
-                disabled={page === 0}
-              >
-                ← Previous
-              </button>
-              
+              <button onClick={handlePreviousPage} disabled={page === 0}>← Previous</button>
               <div className="page-info">
                 <span>Page {page + 1}</span>
-                <span className="page-stats">
-                  Showing {Math.min(paginatedShows.length, 20)} of {shows.length} shows
-                </span>
+                <span className="page-stats">Showing {Math.min(paginatedShows.length, 20)} of {shows.length} shows</span>
               </div>
-              
-              <button onClick={handleNextPage}>
-                Next →
-              </button>
+              <button onClick={handleNextPage}>Next →</button>
             </div>
           )}
         </>

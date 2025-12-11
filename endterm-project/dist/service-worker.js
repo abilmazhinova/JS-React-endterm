@@ -47,6 +47,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Cache-first для других ресурсов
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;

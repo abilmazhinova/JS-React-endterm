@@ -1,11 +1,6 @@
-// ВОТ ЭТО НЕПРАВИЛЬНО - в конце файла ты пишешь еще один useLocalStorage
-// Убери дублирование!
-
-// Правильный useLocalStorage.js:
 import { useState, useEffect, useCallback } from 'react';
 
 const useLocalStorage = (key, initialValue) => {
-  // Функция для инициализации состояния
   const getInitialValue = () => {
     try {
       const item = localStorage.getItem(key);
@@ -18,7 +13,6 @@ const useLocalStorage = (key, initialValue) => {
 
   const [storedValue, setStoredValue] = useState(getInitialValue);
 
-  // Обновляем localStorage при изменении значения
   useEffect(() => {
     try {
       localStorage.setItem(key, JSON.stringify(storedValue));
@@ -27,7 +21,6 @@ const useLocalStorage = (key, initialValue) => {
     }
   }, [key, storedValue]);
 
-  // Функция для обновления значения
   const setValue = useCallback((value) => {
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
@@ -39,7 +32,6 @@ const useLocalStorage = (key, initialValue) => {
     }
   }, [storedValue, key]);
 
-  // Функция для удаления значения
   const removeValue = useCallback(() => {
     try {
       localStorage.removeItem(key);
@@ -51,18 +43,7 @@ const useLocalStorage = (key, initialValue) => {
     }
   }, [key, initialValue]);
 
-  // Функция для очистки всех избранных (опционально)
-  const clearFavorites = useCallback(() => {
-    return removeValue();
-  }, [removeValue]);
-
-  return {
-    value: storedValue,
-    setValue,
-    removeValue,
-    clearFavorites
-  };
+  return { value: storedValue, setValue, removeValue };
 };
 
 export default useLocalStorage;
-// КОНЕЦ ФАЙЛА - больше ничего не добавляй!

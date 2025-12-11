@@ -1,4 +1,4 @@
-
+// public/compress-worker.js
 self.addEventListener('message', function(e) {
   const file = e.data;
   const reader = new FileReader();
@@ -9,7 +9,7 @@ self.addEventListener('message', function(e) {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       
-
+      // Устанавливаем максимальный размер
       const MAX_WIDTH = 200;
       const MAX_HEIGHT = 200;
       let width = img.width;
@@ -31,6 +31,7 @@ self.addEventListener('message', function(e) {
       canvas.height = height;
       ctx.drawImage(img, 0, 0, width, height);
       
+      // Конвертируем в base64 с качеством 70%
       const base64 = canvas.toDataURL('image/jpeg', 0.7);
       self.postMessage(base64);
     };

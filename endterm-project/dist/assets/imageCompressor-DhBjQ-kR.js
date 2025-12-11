@@ -1,0 +1,1 @@
+(function(){"use strict";self.onmessage=async a=>{const c=a.data;try{const e=await createImageBitmap(c),t=new OffscreenCanvas(e.width,e.height);t.getContext("2d").drawImage(e,0,0);const s=await t.convertToBlob({type:"image/jpeg",quality:.6});self.postMessage(s,[s])}catch(e){self.postMessage({error:e.message})}}})();

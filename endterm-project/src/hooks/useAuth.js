@@ -1,19 +1,19 @@
-// src/hooks/useAuth.js
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase/firebase';
 import { getUserProfile } from '../services/profileService';
 
 export const useAuth = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null); 
+  const [loading, setLoading] = useState(true); 
 
   useEffect(() => {
+    // Подписка на изменения авторизации
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Загружаем профиль из Firestore
+        // Загружаем дополнительные данные пользователя из Firestore
         const profileResult = await getUserProfile(firebaseUser.uid);
-        
+
         setUser({
           uid: firebaseUser.uid,
           email: firebaseUser.email,
@@ -23,10 +23,10 @@ export const useAuth = () => {
       } else {
         setUser(null);
       }
-      setLoading(false);
+      setLoading(false); 
     });
 
-    return unsubscribe;
+    return unsubscribe; 
   }, []);
 
   return { user, loading };

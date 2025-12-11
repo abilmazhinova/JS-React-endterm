@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './MovieDetails.css'; // Или отдельный Card.css
+import './MovieDetails.css'; 
 
 const ShowCard = ({ show }) => {
   return (

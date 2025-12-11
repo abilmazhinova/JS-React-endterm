@@ -1,4 +1,3 @@
-// src/services/profileService.js
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
@@ -28,7 +27,7 @@ export const getUserProfile = async (userId) => {
 export const updateProfilePicture = async (userId, photoData) => {
   try {
     await updateDoc(doc(db, 'users', userId), {
-      photoData: photoData, // base64 string
+      photoData: photoData, 
       updatedAt: new Date().toISOString()
     });
     return { success: true };
