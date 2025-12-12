@@ -10,6 +10,7 @@ import Signup from './components/Auth/Signup';
 import Profile from './components/Profile/Profile';
 import Navbar from './components/Layout/Navbar';
 import { useAuth } from './hooks/useAuth';
+import OfflineBanner from "./components/OfflineBanner";
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -25,6 +26,8 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <Router>
+      <OfflineBanner />
+
       <div className="App">
         <Navbar />
         <div className="main-content">
@@ -36,19 +39,14 @@ function App() {
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } 
-            />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           </Routes>
         </div>
       </div>
     </Router>
   );
 }
+
+
 
 export default App;
