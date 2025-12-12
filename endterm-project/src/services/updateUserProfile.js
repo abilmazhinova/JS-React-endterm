@@ -1,25 +1,29 @@
-import { auth, storage, db } from "../firebase/firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../firebase/firebase";
 
-export async function uploadProfilePicture(file, userId) {
-  const storageRef = ref(storage, `profilePictures/${userId}.jpg`);
+/**
+ * Saves compressed base64 photo directly to Firestore.
+ * No Firebase Storage is used (as per exam requirements).
+ *
+ * @param {string} base64 - compressed image in Base64 format
+ * @param {string} uid - user ID
+ * @returns base64 string (used as image URL)
+ */
+export async function uploadProfilePicture(base64, uid) {
+  if (!uid || !base64) {
+    throw new Error("Invalid image or user");
+  }
 
-  // Загружаем в Storage
-  await uploadBytes(storageRef, file);
+  const userRef = doc(db, "users", uid);
 
-  // Получаем URL
-  const url = await getDownloadURL(storageRef);
+  // Save base64 image directly in user document
+  await setDoc(
+    userRef,
+    {
+      photoData: base64, 
+    },
+    { merge: true }
+  );
 
-  // Сохраняем в Firestore
-  await updateDoc(doc(db, "users", userId), {
-    photoURL: url,
-  });
-
-  // Обновляем Firebase auth user
-  await updateProfile(auth.currentUser, {
-    photoURL: url,
-  });
-
-  return url;
+  return base64; 
 }

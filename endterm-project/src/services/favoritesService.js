@@ -41,25 +41,25 @@ export const addFavoriteToFirestore = async (userId, showId) => {
     await updateDoc(doc(db, 'users', userId), {
       favorites: arrayUnion(showId)
     });
-    return true;
+    return { success: true }; 
   } catch (error) {
     console.error('Error adding favorite to Firestore:', error);
-    throw error;
+    return { success: false, error };
   }
 };
-
 
 export const removeFavoriteFromFirestore = async (userId, showId) => {
   try {
     await updateDoc(doc(db, 'users', userId), {
       favorites: arrayRemove(showId)
     });
-    return true;
+    return { success: true }; 
   } catch (error) {
     console.error('Error removing favorite from Firestore:', error);
-    throw error;
+    return { success: false, error };
   }
 };
+
 
 
 export const mergeFavorites = async (userId, localFavorites) => {

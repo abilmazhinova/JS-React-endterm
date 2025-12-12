@@ -118,8 +118,8 @@
 /* Logout Button Styling */
 .logout-btn {
   background: none;
-  border: 1px solid #fecaca;
-  color: #dc2626;
+  border: 1px solid #000000;
+  color: #000000;
   font-weight: 500;
   cursor: pointer;
   padding: 0.5rem 1rem;
@@ -134,9 +134,9 @@
 }
 
 .logout-btn:hover {
-  color: #b91c1c;
+  color: #000000;
   background-color: #fef2f2;
-  border-color: #fca5a5;
+  border-color: #000000;
 }
 
 .user-email {
@@ -196,3 +196,37 @@
     font-size: 0.7rem;
   }
 }
+
+/* Контейнер аватара и кнопки Logout */
+.nav-user-container {
+  display: flex;
+  align-items: center; 
+  gap: 10px;
+}
+
+/* Ссылка на профиль с аватаром */
+.profile-link {
+  display: flex;
+  align-items: center; 
+  gap: 5px;
+  text-decoration: none;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+/* Аватар пользователя */
+.header-profile-img {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #5F9EA0;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+/* hover эффект */
+.header-profile-img:hover {
+  transform: scale(1.1);
+}
+

@@ -39,18 +39,20 @@ const MovieDetails = () => {
   // ========== useCallback: обработка клика по избранному ==========
   const handleFavoriteClick = useCallback(async () => {
     if (!show) return;
-
+    
     const result = await toggleFavorite(show.id);
-
+    
     if (result.success) {
       if (isFavorite(show.id)) {
         setActionMessage('Removed from favorites!');
       } else {
         setActionMessage('Added to favorites!');
       }
-
-      // Автоматически скрываем уведомление через 3 секунды
-      setTimeout(() => setActionMessage(''), 3000);
+      
+      // Автоматически скрываем сообщение через 3 секунды
+      setTimeout(() => {
+        setActionMessage('');
+      }, 3000);
     }
   }, [show, isFavorite, toggleFavorite]);
 

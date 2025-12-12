@@ -7,35 +7,40 @@ const FAVORITES_STORAGE_KEY = 'tvmaze_favorites';
 
 const useFavorites = () => {
   const { user, loading: authLoading } = useAuth();
-  const [favorites, setFavorites] = useState([]); 
+  const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mergeMessage, setMergeMessage] = useState('');
+  
+  const {
+    value: localFavorites,
+    setValue: setLocalFavorites,
+    removeValue: clearLocalFavorites
+  } = useLocalStorage(FAVORITES_STORAGE_KEY, []);
 
-  // Локальное хранение для гостей
-  const { value: localFavorites, setValue: setLocalFavorites, removeValue: clearLocalFavorites } =
-    useLocalStorage(FAVORITES_STORAGE_KEY, []);
-
-  // ====== useMemo для производных значений ======
+  // ========== useMemo: производные значения ==========
   const favoritesCount = useMemo(() => favorites.length, [favorites]);
   const hasLocalFavorites = useMemo(() => localFavorites.length > 0, [localFavorites]);
   const localFavoritesCount = useMemo(() => localFavorites.length, [localFavorites]);
   const isGuest = useMemo(() => !user, [user]);
 
-  // ====== Загрузка избранного ======
+  // Загружаем избранное в зависимости от статуса пользователя(типа есть он в системе или нет)
   const loadFavorites = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
-
+      
       if (user) {
+        // Для авторизованных пользователей загружаю из Firestore
         const serverFavorites = await favoritesService.getFavoritesFromFirestore(user.uid);
         setFavorites(serverFavorites);
-
+        
+        // Если есть локальные избранные предлагаю сделать мердж
         if (localFavorites.length > 0) {
           setMergeMessage(`You have ${localFavorites.length} local favorites. Login to sync them.`);
         }
       } else {
+        // Для тех кто не в системе использую localStorage
         setFavorites(localFavorites);
       }
     } catch (err) {
@@ -46,21 +51,144 @@ const useFavorites = () => {
     }
   }, [user, localFavorites]);
 
+  // Эффект для загрузки избранного при изменении пользователя
   useEffect(() => {
-    if (!authLoading) loadFavorites();
+    if (!authLoading) {
+      loadFavorites();
+    }
   }, [user, authLoading, loadFavorites]);
 
-  // ====== Добавление / удаление / переключение ======
-  const addFavorite = useCallback(async (showId) => { /* ... */ }, [user, localFavorites, setLocalFavorites]);
-  const removeFavorite = useCallback(async (showId) => { /* ... */ }, [user, localFavorites, setLocalFavorites]);
-  const toggleFavorite = useCallback(async (showId) => { /* ... */ }, [favorites, addFavorite, removeFavorite]);
-  const isFavorite = useCallback((showId) => favorites.includes(showId), [favorites]);
+  // Добавить в избранное
+  const addFavorite = useCallback(async (showId) => {
+    try {
+      if (user) {
+        // Для авторизованных добавляем в Firestore
+        await favoritesService.addFavoriteToFirestore(user.uid, showId);
+        
+        // Обновляем локальное состояние
+        setFavorites(prev => {
+          const updated = [...prev, showId];
+          return updated;
+        });
+      } else {
+        // Для гостей добавляем в localStorage
+        const updatedFavorites = [...localFavorites, showId];
+        setLocalFavorites(updatedFavorites);
+        setFavorites(updatedFavorites);
+      }
+      
+      return { success: true };
+    } catch (err) {
+      const errorMsg = 'Failed to add to favorites: ' + err.message;
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
+    }
+  }, [user, localFavorites, setLocalFavorites]);
 
-  // ====== Слияние локального и серверного избранного ======
-  const mergeWithServer = useCallback(async () => { /* ... */ }, [user, localFavorites, clearLocalFavorites]);
+  // Удалить из избранного
+  const removeFavorite = useCallback(async (showId) => {
+    try {
+      if (user) {
+        // Для авторизованных удаляем из Firestore
+        await favoritesService.removeFavoriteFromFirestore(user.uid, showId);
+        
+        // Обновляем локальное состояние
+        setFavorites(prev => prev.filter(id => id !== showId));
+      } else {
+        // Для гостей удаляем из localStorage
+        const updatedFavorites = localFavorites.filter(id => id !== showId);
+        setLocalFavorites(updatedFavorites);
+        setFavorites(updatedFavorites);
+      }
+      
+      return { success: true };
+    } catch (err) {
+      const errorMsg = 'Failed to remove from favorites: ' + err.message;
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
+    }
+  }, [user, localFavorites, setLocalFavorites]);
 
-  // ====== Очистка всех избранных ======
-  const clearAllFavorites = useCallback(async () => { /* ... */ }, [user, clearLocalFavorites]);
+  // Переключить избранное (добавить/удалить)
+  const toggleFavorite = useCallback(async (showId) => {
+    const isCurrentlyFavorite = favorites.includes(showId);
+    
+    if (isCurrentlyFavorite) {
+      return await removeFavorite(showId);
+    } else {
+      return await addFavorite(showId);
+    }
+  }, [favorites, addFavorite, removeFavorite]);
+
+  // Проверить, находится ли в избранном
+  const isFavorite = useCallback((showId) => {
+    return favorites.includes(showId);
+  }, [favorites]);
+
+  // Слияние локальных и серверных избранных при логине
+  const mergeWithServer = useCallback(async () => {
+    if (!user || localFavorites.length === 0) {
+      return { success: false, message: 'No local favorites to merge' };
+    }
+    
+    try {
+      setLoading(true);
+      setError('');
+      
+      const result = await favoritesService.mergeFavorites(user.uid, localFavorites);
+      
+      if (result.success) {
+        // Очищаем локальные избранные
+        clearLocalFavorites();
+        
+        // Обновляем состояние
+        setFavorites(result.merged);
+        
+        // Показываем сообщение
+        setMergeMessage(`Your ${result.localCount} local favorites were merged with your account.`);
+        
+        // Автоматически скрываем сообщение через 5 секунд
+        setTimeout(() => {
+          setMergeMessage('');
+        }, 5000);
+        
+        return {
+          success: true,
+          message: `Successfully merged ${result.localCount} local favorites with ${result.serverCount} server favorites`,
+          ...result
+        };
+      }
+      
+      return result;
+    } catch (err) {
+      const errorMsg = 'Failed to merge favorites: ' + err.message;
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
+    } finally {
+      setLoading(false);
+    }
+  }, [user, localFavorites, clearLocalFavorites]);
+
+  // Очистить все избранное
+  const clearAllFavorites = useCallback(async () => {
+    try {
+      if (user) {
+        // Для авторизованных очищаем в Firestore
+        await favoritesService.saveFavoritesToFirestore(user.uid, []);
+      } else {
+        // Для гостей очищаем localStorage
+        clearLocalFavorites();
+      }
+      
+      setFavorites([]);
+      setError('');
+      return { success: true };
+    } catch (err) {
+      const errorMsg = 'Failed to clear favorites: ' + err.message;
+      setError(errorMsg);
+      return { success: false, error: errorMsg };
+    }
+  }, [user, clearLocalFavorites]);
 
   return {
     favorites,
@@ -68,6 +196,7 @@ const useFavorites = () => {
     error,
     mergeMessage,
     favoritesCount,
+    
     addFavorite,
     removeFavorite,
     toggleFavorite,
@@ -75,6 +204,7 @@ const useFavorites = () => {
     mergeWithServer,
     clearAllFavorites,
     reloadFavorites: loadFavorites,
+    
     isGuest,
     hasLocalFavorites,
     localFavoritesCount

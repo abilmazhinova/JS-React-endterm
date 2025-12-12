@@ -4,14 +4,27 @@ import { auth } from '../firebase/firebase';
 import { getUserProfile } from '../services/profileService';
 
 export const useAuth = () => {
-  const [user, setUser] = useState(null); 
-  const [loading, setLoading] = useState(true); 
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+
+  const refreshUser = async () => {
+    const current = auth.currentUser;
+    if (!current) return;
+
+    const profileResult = await getUserProfile(current.uid);
+
+    setUser({
+      uid: current.uid,
+      email: current.email,
+      displayName: current.displayName || profileResult.profile?.displayName,
+      photoURL: profileResult.profile?.photoData || current.photoURL
+    });
+  };
 
   useEffect(() => {
-    // Подписка на изменения авторизации
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Загружаем дополнительные данные пользователя из Firestore
         const profileResult = await getUserProfile(firebaseUser.uid);
 
         setUser({
@@ -23,11 +36,12 @@ export const useAuth = () => {
       } else {
         setUser(null);
       }
-      setLoading(false); 
+
+      setLoading(false);
     });
 
-    return unsubscribe; 
+    return unsubscribe;
   }, []);
 
-  return { user, loading };
+  return { user, loading, refreshUser };
 };

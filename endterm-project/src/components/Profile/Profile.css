@@ -1,67 +1,78 @@
 .profile-container {
-  max-width: 600px;
+  max-width: 400px;
   margin: 40px auto;
   padding: 0 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .profile-container h1 {
   color: #333;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
   text-align: center;
+  font-size: 1.8rem;
 }
 
 .profile-card {
-  background: white;
+  background: #fff;
   border-radius: 15px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  text-align: center;
+  padding: 25px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px; /* расстояние между элементами */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
 }
 
 /* Фото профиля */
-.profile-photo img {
-  width: 150px;
-  height: 150px;
+.profile-img {
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  border: 5px solid #5F9EA0;
-  margin-bottom: 20px;
+  border: 3px solid #5F9EA0;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
 }
 
-/* Имя + email */
-.profile-info h2 {
-  color: #333;
-  margin-bottom: 10px;
+/* Email */
+.profile-email {
+  color: #555;
+  font-size: 0.95rem;
+  margin: 0;
+  word-break: break-all;
+  text-align: center;
 }
 
-.profile-info .email {
-  color: #666;
-}
-
-.simple-profile {
+/* Кнопки */
+.button-group {
   display: flex;
-  align-items: center;
-  gap: 20px;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 5px;
 }
 
-.profile-photo img {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.upload-btn {
-  margin-top: 10px;
-  padding: 10px 15px;
-  background: #5f9ea0;
+button {
+  padding: 8px 14px;
+  background: #5F9EA0;
   color: white;
   border-radius: 8px;
   border: none;
   cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
 }
 
-.upload-btn:disabled {
+button:hover:not(:disabled) {
+  background: #4a7a86;
+}
+
+button:disabled {
   opacity: 0.6;
   cursor: default;
 }
